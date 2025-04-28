@@ -21,4 +21,4 @@ while day_index < len(all_days):
     print(f"✅ Emitted Day {day_index + 1} - Date {current_day[0]['date']}")
     
     day_index += 1
-    time.sleep(2)  # Wait 10 seconds between each day
+    time.sleep(5)  # Wait 10 seconds between each day

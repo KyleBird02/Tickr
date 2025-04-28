@@ -20,3 +20,20 @@ exports.getStockByName = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// GET /api/stocks/latest
+exports.getLatestStockPrices = async (req, res) => {
+    try {
+        const stocks = await Stock.find();
+
+        const priceMap = {};
+        stocks.forEach(stock => {
+            priceMap[stock.Name] = stock.close;
+        });
+
+        res.json(priceMap);
+    } catch (error) {
+        console.error('Error fetching latest stock prices:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+

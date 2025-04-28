@@ -1,11 +1,11 @@
 const express = require('express');
-const { getAllStocks, getStockByName } = require('../controllers/stockController');
+const { getAllStocks, getStockByName , getLatestStockPrices} = require('../controllers/stockController');
 const { authenticate } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Public routes
+router.get('/latest', getLatestStockPrices); // ✅ first
 router.get('/', getAllStocks);
-router.get('/:name', getStockByName);
+router.get('/:name', getStockByName); 
 
 module.exports = router;

@@ -23,10 +23,16 @@ exports.placeOrder = async (req, res) => {
             user.balance -= totalCost;
 
             const ownedStock = user.portfolio.find(s => s.stockName === stockName);
+
             if (ownedStock) {
-                ownedStock.quantity += quantity;
+                // 🧠 Weighted average bought price
+                const totalValue = (ownedStock.quantity * ownedStock.boughtPrice) + (quantity * price);
+                const newQuantity = ownedStock.quantity + quantity;
+                ownedStock.boughtPrice = totalValue / newQuantity;
+                ownedStock.quantity = newQuantity;
             } else {
-                user.portfolio.push({ stockName, quantity });
+                // 🧠 Save boughtPrice for new stock
+                user.portfolio.push({ stockName, quantity, boughtPrice: price });
             }
         } 
         else if (type === 'SELL') {
@@ -61,6 +67,7 @@ exports.placeOrder = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 exports.getPortfolio = async (req, res) => {
     try {

@@ -1,38 +1,39 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
 const { kafkaConsumer } = require('./kafka/consumer');
-const authRoutes = require('./routes/auth');
-const stockRoutes = require('./routes/stocks');
-const orderRoutes = require('./routes/orders');
-require('dotenv').config();
+const config = require('./config');
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
+// MongoDB connection
+mongoose.connect(config.mongoURI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-
-// Socket.io connection
-io.on('connection', (socket) => {
-    console.log('Client connected');
+// Server + Socket setup
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+    }
 });
 
-// Kafka Consumer that emits to Socket.io
+// Kafka Consumer with Socket
 kafkaConsumer(io);
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/stocks', stockRoutes);
-app.use('/api/orders', orderRoutes);
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/stocks', require('./routes/stocks'));
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start server
+server.listen(config.port, () => {
+    console.log(`Server running on port ${config.port}`);
+});

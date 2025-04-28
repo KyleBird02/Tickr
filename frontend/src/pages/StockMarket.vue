@@ -87,7 +87,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (socket) {
-    socket.disconnect()
+    // socket.disconnect()
     console.log('Socket disconnected ✅')
   }
 })

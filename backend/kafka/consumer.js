@@ -8,6 +8,9 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: 'stock-group' });
 
+// Buffer to collect incoming stocks
+let stockBuffer = [];
+
 async function kafkaConsumer(io) {
   await consumer.connect();
   await consumer.subscribe({ topic: 'stock-ticks', fromBeginning: true });
@@ -15,19 +18,31 @@ async function kafkaConsumer(io) {
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const stock = JSON.parse(message.value.toString());
-      console.log('Received stock:', stock);
 
-      // Save stock to MongoDB (upsert operation)
-      await Stock.findOneAndUpdate(
-        { Name: stock.Name },
-        { $set: stock },
-        { upsert: true }
-      );
+      stockBuffer.push(stock);
 
-      // Emit stock update to all connected frontend clients
+      // Emit immediately to frontend
       io.emit('stockUpdate', stock);
     }
   });
+
+  // Periodically flush buffer into MongoDB
+  setInterval(async () => {
+    if (stockBuffer.length > 0) {
+      const bulkOps = stockBuffer.map(stock => ({
+        updateOne: {
+          filter: { Name: stock.Name },
+          update: { $set: stock },
+          upsert: true
+        }
+      }));
+
+      await Stock.bulkWrite(bulkOps);
+      console.log(`✅ Bulk inserted/updated ${stockBuffer.length} stocks`);
+      
+      stockBuffer = []; // Clear buffer
+    }
+  }, 2000); // Every 2 seconds, write all buffered stocks
 }
 
 module.exports = { kafkaConsumer };
