@@ -2,8 +2,10 @@
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-6">📚 Your Portfolio</h1>
 
-    <div class="mb-6">
+    <div class="mb-6 space-y-2">
       <h2 class="text-xl">Balance: ${{ balance.toFixed(2) }}</h2>
+      <h2 class="text-xl">Portfolio Value: ${{ portfolioValue.toFixed(2) }}</h2>
+      <h2 class="text-xl font-semibold">Total Account Value: ${{ totalAccountValue.toFixed(2) }}</h2>
     </div>
 
     <div v-if="portfolio.length" class="grid gap-6">
@@ -55,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { io, Socket } from 'socket.io-client'
 import axios from 'axios'
 
@@ -76,17 +78,9 @@ onMounted(async () => {
   if (!token) return
 
   try {
-    // Fetch portfolio
-    const res = await axios.get('http://localhost:5000/api/orders/portfolio', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    balance.value = res.data.balance
-    portfolio.value = res.data.portfolio
-
-    // Fetch current stock prices initially
+    await fetchPortfolio()
     await fetchCurrentPrices()
 
-    // Setup WebSocket
     socket = io('http://localhost:5000')
 
     socket.on('stockUpdate', (stock) => {
@@ -103,6 +97,17 @@ onUnmounted(() => {
   }
 })
 
+async function fetchPortfolio() {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  const res = await axios.get('http://localhost:5000/api/orders/portfolio', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  balance.value = res.data.balance
+  portfolio.value = res.data.portfolio
+}
+
 async function fetchCurrentPrices() {
   try {
     const res = await axios.get('http://localhost:5000/api/stocks/latest')
@@ -118,7 +123,21 @@ function getProfitLoss(stock: PortfolioItem): number {
   return (current - stock.boughtPrice) * stock.quantity
 }
 
-// 🧠 Sell Stock Handler
+const portfolioValue = computed(() => {
+  let total = 0
+  for (const stock of portfolio.value) {
+    const currentPrice = currentPrices.value[stock.stockName]
+    if (currentPrice !== undefined) {
+      total += currentPrice * stock.quantity
+    }
+  }
+  return total
+})
+
+const totalAccountValue = computed(() => {
+  return balance.value + portfolioValue.value
+})
+
 async function sellStock(stockName: string) {
   const quantityStr = prompt(`Enter quantity to sell for ${stockName}:`)
   if (!quantityStr) return
@@ -142,24 +161,14 @@ async function sellStock(stockName: string) {
     })
 
     alert('Stock sold successfully!')
-    await refreshPortfolio() // 🧠 Refresh portfolio after selling
+    await fetchPortfolio()
   } catch (err) {
     console.error('Failed to sell stock', err)
     alert('Failed to sell stock')
   }
 }
-
-// 🧠 Refresh portfolio after sell
-async function refreshPortfolio() {
-  try {
-    const token = localStorage.getItem('token')
-    const res = await axios.get('http://localhost:5000/api/orders/portfolio', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    balance.value = res.data.balance
-    portfolio.value = res.data.portfolio
-  } catch (err) {
-    console.error('Failed to refresh portfolio', err)
-  }
-}
 </script>
+
+<style scoped>
+/* Add optional styles here */
+</style>

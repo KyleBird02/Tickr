@@ -7,10 +7,11 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-with open("daily_ticks.json", "r") as file:
+with open("daily_ticks_3.json", "r") as file:
     all_days = json.load(file)
 
 day_index = 0
+print("Length: ", len(all_days))
 
 while day_index < len(all_days):
     current_day = all_days[day_index]
@@ -21,4 +22,4 @@ while day_index < len(all_days):
     print(f"✅ Emitted Day {day_index + 1} - Date {current_day[0]['date']}")
     
     day_index += 1
-    time.sleep(5)  # Wait 10 seconds between each day
+    time.sleep(1)  # Wait 10 seconds between each day
