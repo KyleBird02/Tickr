@@ -3,8 +3,10 @@ import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 import StockMarket from '../pages/StockMarket.vue'
 import Portfolio from '../pages/Portfolio.vue'
+import LandingPage from '../pages/LandingPage.vue'
 
 const routes = [
+  { path: '/landing', component: LandingPage },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
   {
