@@ -12,6 +12,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Stock List -->
       <div>
         <div
           v-for="stock in filteredStocks"
@@ -20,13 +21,17 @@
           class="border p-4 rounded cursor-pointer hover:bg-gray-100 transition shadow"
         >
           <h2 class="text-xl">{{ stock.Name }}</h2>
-          <p>Price: ${{ stock.close }}</p>
+          <p>Price: ${{ Number(stock.close).toFixed(2) }}</p>
+
           <p>Date: {{ stock.date }}</p>
         </div>
       </div>
 
+      <!-- Trade + Chart Panel -->
       <div v-if="selectedStock" class="border p-6 rounded shadow-lg">
         <h2 class="text-xl font-bold mb-4">Trade {{ selectedStock.Name }}</h2>
+        
+
 
         <div class="flex flex-col gap-4">
           <div>
@@ -46,6 +51,11 @@
             Place Order
           </button>
         </div>
+
+        <!-- Real-Time Chart -->
+        <div class="mt-6">
+          <LiveStockChart :symbol="selectedStock.Name" />
+        </div>
       </div>
     </div>
 
@@ -57,6 +67,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { io, Socket } from 'socket.io-client'
 import axios from 'axios'
+import LiveStockChart from "../components/LiveStockChart.vue";
+
 
 interface Stock {
   Name: string;

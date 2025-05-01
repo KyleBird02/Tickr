@@ -33,6 +33,13 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/stocks', require('./routes/stocks'));
 
+app.post('/api/stream', (req, res) => {
+    const tick = req.body;
+    console.log('📥 Received from Spark:', tick);
+    io.emit('stockUpdate', tick); // this will be received by Vue via Socket.IO
+    res.sendStatus(200);
+  });
+
 // Start server
 server.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`);
