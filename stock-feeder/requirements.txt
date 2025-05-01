@@ -1,4 +1,7 @@
 kafka-python==2.2.0
+<<<<<<< HEAD
 pyspark==3.5.5
 websocket-client==1.8.0
 requests
+=======
+>>>>>>> b5551217203b7c55f4cc867fb18d67894bb91f7e
