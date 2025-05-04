@@ -41,17 +41,16 @@ const props = defineProps({ symbol: String })
 const socket = io('http://localhost:5000')
 const dataPoints = ref([])
 
-// Optional: use fixed color map
-const colorMap = {
-  AAPL: 'blue',
-  AAL: 'green',
-  AAP: 'red',
-  TSLA: 'purple',
-  MSFT: 'orange'
-}
+const palette = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6', '#14B8A6', '#D946EF']
+const assignedColors = ref({})
 
 function getColorForSymbol(symbol) {
-  return colorMap[symbol.toUpperCase()] || 'gray'
+  const key = symbol.toUpperCase()
+  if (!assignedColors.value[key]) {
+    const randomColor = palette[Math.floor(Math.random() * palette.length)]
+    assignedColors.value[key] = randomColor
+  }
+  return assignedColors.value[key]
 }
 
 const chartData = ref({ labels: [], datasets: [] })

@@ -4,6 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const { kafkaConsumer } = require('./kafka/consumer');
+const { orderConsumer } = require('./kafka/orderProcessor');
 const config = require('./config');
 
 const app = express();
@@ -27,6 +28,8 @@ const io = new Server(server, {
 
 // Kafka Consumer with Socket
 kafkaConsumer(io);
+orderConsumer();
+
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
